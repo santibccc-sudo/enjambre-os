@@ -5,7 +5,7 @@ import threading
 
 import pytest
 
-from enjambre.adapters.cli import CliAdapter
+from enjambre.adapters.cli import CliAdapter, batch_launcher
 from enjambre.adapters.openai import OpenAIAdapter
 from enjambre.genome import AgentSpec
 
@@ -54,6 +54,28 @@ def test_cli_environment_is_isolated(tmp_path, monkeypatch):
     script = "import os; print(os.environ.get('SECRET_TOKEN', 'absent'))"
     assert run(cli(tmp_path, script, contract="text")).result == "absent"
     assert run(cli(tmp_path, script, contract="text", env=["SECRET_TOKEN"])).result == "s3cr3t"
+
+
+def test_cli_resolves_programs_on_path_and_relative_to_cwd(tmp_path):
+    spec = AgentSpec(id="py", adapter="cli", options={"command": [sys.executable, "-c", "print('ok')"], "contract": "text"})
+    adapter = CliAdapter(spec, tmp_path)
+    assert adapter._resolve("python3-that-does-not-exist-4242", {"PATH": ""}) is None
+    (tmp_path / "tools").mkdir()
+    (tmp_path / "tools" / "agent.sh").write_text("#!/bin/sh\n")
+    assert adapter._resolve("tools/agent.sh", {}) == str(tmp_path / "tools" / "agent.sh")
+    assert run(adapter).result == "ok"
+
+
+def test_windows_batch_launchers_never_receive_the_prompt_as_an_argument(tmp_path, monkeypatch):
+    assert batch_launcher(r"C:\Users\me\AppData\Roaming\npm\claude.CMD", "win32")
+    assert not batch_launcher("/usr/local/bin/claude", "linux")
+    assert not batch_launcher(r"C:\tools\agent.exe", "win32")
+    shim = tmp_path / "claude.cmd"
+    shim.write_text("@echo off\n")
+    monkeypatch.setattr("enjambre.adapters.cli.batch_launcher", lambda path, platform="win32": path.endswith(".cmd"))
+    unsafe = CliAdapter(AgentSpec(id="c", adapter="cli", options={"command": [str(shim), "-p", "{prompt}"], "stdin": False}), tmp_path)
+    res = run(unsafe, "& del important.txt")
+    assert res.error_code == "adapter_config" and "stdin: true" in res.error
 
 
 def test_cli_configuration_errors(tmp_path):

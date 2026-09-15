@@ -11,7 +11,10 @@ requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "GreenAI Network" }]
-dependencies = ["PyYAML>=6"]
+dependencies = [
+  "PyYAML>=6",
+  "tzdata; sys_platform == 'win32'",  # Windows ships no time zone database; the solar window needs one
+]
 keywords = ["agents", "multi-agent", "orchestration", "mcp", "llm", "harness", "swarm", "scheduler"]
 classifiers = [
   "Development Status :: 3 - Alpha",

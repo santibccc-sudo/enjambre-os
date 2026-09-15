@@ -5,6 +5,7 @@ enjambre's Python code has one runtime dependency, installed from PyPI rather th
 | Package | License | Project |
 |---|---|---|
 | PyYAML | MIT | https://github.com/yaml/pyyaml |
+| tzdata (Windows only) | Apache-2.0 | https://github.com/python/tzdata |
 
 The dashboard ships one bundled browser library, `src/enjambre/web/vendor/3d-force-graph.min.js`
 (version 1.73.4), loaded only when the Memory tab opens. It is the standalone build of

@@ -16,6 +16,8 @@ pip install .            # from a clone; one dependency (PyYAML)
 enjambre demo            # open http://127.0.0.1:8765
 ```
 
+Runs on Linux, macOS and Windows with Python 3.10 or newer; every change is tested on all three.
+
 The demo needs no model and no API key. Four scripted agents run a small editorial pipeline:
 research, draft, review, publish. The critic stumbles once so you can watch a retry. The writer
 tries to publish without permission and the gate stops it before it runs. The router explains
@@ -110,6 +112,10 @@ router:
   weights: {success: 35, latency: 15, cost: 20, energy: 30}
   solar_window: {start: "09:30", end: "17:30", timezone: Europe/Madrid}
 ```
+
+On Windows, CLIs installed with npm are `.cmd` launchers. enjambre finds them, but only
+passes them the prompt through stdin (`stdin: true`, the default): `cmd.exe` would re-parse a
+prompt given as an argument.
 
 Agents answer with a small JSON contract (`status`, `result`, `artifacts`...). The scheduler
 appends it to every prompt, together with the agent's role, the policy and the results of
