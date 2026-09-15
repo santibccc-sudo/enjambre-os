@@ -83,6 +83,21 @@ def test_groups_get_distinct_colours(tmp_path):
     assert {g["name"]: g["color"] for g in groups}["missing"] == "#ff5b6e"
 
 
+@pytest.mark.skipif(not hasattr(os, "symlink") or os.name == "nt", reason="symlinks need privileges on Windows")
+def test_symlinks_cannot_leak_files_from_outside(tmp_path):
+    secret = tmp_path / "secret.md"
+    secret.write_text("---\ndescription: top secret\n---\n# Secret\n")
+    root = tmp_path / "memory"
+    root.mkdir()
+    (root / "real.md").write_text("# Real note\n")
+    (root / "leak.md").symlink_to(secret)
+    (root / "inside.md").symlink_to(root / "real.md")
+    nodes = {n["id"]: n for n in MemoryGraph(root).graph()["nodes"]}
+    assert "leak" not in nodes
+    assert "top secret" not in str(nodes)
+    assert "inside" in nodes
+
+
 def test_slug_and_empty_folders(tmp_path):
     assert slug("Decisión: Lease/Rescue!") == "decision-lease-rescue"
     assert MemoryGraph(tmp_path / "nothing").graph()["stats"]["nodes"] == 0

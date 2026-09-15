@@ -91,6 +91,11 @@ class MemoryGraph:
             rel = path.relative_to(self.root)
             if any(part.startswith(".") for part in rel.parts):
                 continue
+            try:
+                # A symlink that leads outside the memory folder must not be read or served.
+                path.resolve().relative_to(self.root)
+            except (OSError, ValueError):
+                continue
             files.append(path)
             if len(files) >= MAX_FILES:
                 break
