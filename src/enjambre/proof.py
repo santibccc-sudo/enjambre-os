@@ -46,13 +46,22 @@ def check(target: str, *, since: float = 0.0, allow_urls: bool = True, timeout: 
         return False, f"unreadable: {type(exc).__name__}"
 
 
+def _display(target: str) -> str:
+    """The informative end of a path (folder/file), not its long, machine-specific start."""
+    text = str(target)
+    if text.startswith(("http://", "https://")):
+        return text[:80]
+    path = Path(text)
+    return (f"{path.parent.name}/{path.name}" if path.parent.name else path.name or text)[-80:]
+
+
 def verify(targets: Iterable[str], **kw) -> tuple[bool, str]:
     """True if at least one target passes; the reason lists every check."""
     parts, passed = [], False
     for target in targets:
         ok, why = check(target, **kw)
         passed = passed or ok
-        parts.append(f"{'ok' if ok else 'no'} {why}: {str(target)[:80]}")
+        parts.append(f"{'ok' if ok else 'no'} {why}: {_display(target)}")
     if not parts:
         return False, "no proof criteria"
     return passed, "; ".join(parts[:6])

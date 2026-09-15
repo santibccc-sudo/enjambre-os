@@ -40,8 +40,9 @@ def test_directories_need_a_fresh_entry(tmp_path):
 def test_verify_needs_one_passing_target(tmp_path):
     f = tmp_path / "ok.txt"
     f.write_text("x")
-    passed, detail = proof.verify(["/nope", str(f)])
+    passed, detail = proof.verify([str(tmp_path / "nope.txt"), str(f)])
     assert passed and "does not exist" in detail
+    assert str(tmp_path) not in detail and f"{tmp_path.name}/ok.txt" in detail
     assert proof.verify([]) == (False, "no proof criteria")
 
 
