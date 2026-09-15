@@ -104,14 +104,23 @@ class Scheduler:
 
     def _dispatch(self, task: dict) -> None:
         tid = task["id"]
+        operation, project = task.get("operation", ""), task.get("project", "")
         agent_id, note = task["agent"], ""
         if agent_id in ROUTED:
-            choice = self.router.choose()
-            agent_id, note = choice["agent"], choice["reason"]
-            if agent_id is None:
-                self.kernel.complete(tid, self.worker, AgentResult.failed("no agent can take this task", "no_agent"))
+            routable = [a.id for a in self.genome.agents.values() if a.route]
+            # The router only ranks agents the policy lets run this task.
+            allowed = [a for a in routable if self.genome.policy.check(a, operation, project) is None]
+            if not routable:
+                self.kernel.complete(tid, self.worker, AgentResult.failed("no routable agent is declared", "no_agent"))
                 return
-        denied = self.genome.policy.check(agent_id, task.get("operation", ""), task.get("project", ""))
+            if not allowed:
+                scope = f"operation '{operation}'" if operation else f"project '{project}'"
+                self.kernel.complete(tid, self.worker, AgentResult.failed(
+                    f"no routable agent is allowed to run {scope}", "permission_denied"))
+                return
+            choice = self.router.choose(candidates=allowed)
+            agent_id, note = choice["agent"], choice["reason"]
+        denied = self.genome.policy.check(agent_id, operation, project)
         if denied:
             self.kernel.complete(tid, self.worker, AgentResult.failed(denied, "permission_denied"))
             return

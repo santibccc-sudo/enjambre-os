@@ -74,6 +74,35 @@ def test_unpinned_tasks_are_routed(tmp_path):
     assert "router:" in assigned["detail"]
 
 
+def test_routing_only_ranks_agents_the_policy_allows(tmp_path):
+    agents = """
+        writer:
+          adapter: scripted
+          options: {delay_s: 0}
+        editor:
+          adapter: scripted
+          cost: 1.5
+          options: {delay_s: 0}
+    """
+    genome, kernel = _setup(tmp_path / "a", agents=agents, policy="operations:\n  publish: [editor]\n")
+    publish = kernel.enqueue("Publish", operation="publish")["id"]
+    chore = kernel.enqueue("Tidy up")["id"]
+    sched = Scheduler(kernel, genome)
+    assert sched.run_until_idle(timeout_s=10)
+    sched.stop()
+    assert kernel.get(publish)["assignee"] == "scheduler/editor" and kernel.get(publish)["status"] == "done"
+    assert kernel.get(chore)["assignee"] == "scheduler/writer"
+
+    genome, kernel = _setup(tmp_path / "b", agents=agents.replace("cost: 1.5", "cost: 1.5\n          route: false"),
+                            policy="operations:\n  publish: [editor]\n")
+    tid = kernel.enqueue("Publish", operation="publish", max_attempts=3)["id"]
+    sched = Scheduler(kernel, genome)
+    assert sched.run_until_idle(timeout_s=10)
+    sched.stop()
+    task = kernel.get(tid)
+    assert task["error_code"] == "permission_denied" and "no routable agent is allowed" in task["result"]
+
+
 def test_cli_agents_speak_the_contract(tmp_path):
     script = (
         "import json,sys; p=sys.stdin.read(); "

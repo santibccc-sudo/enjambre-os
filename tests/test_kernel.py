@@ -204,6 +204,23 @@ def test_retry_revives_dependents_killed_by_upstream(kernel):
     assert not kernel.retry(down)["ok"]
 
 
+def test_a_partial_retry_never_leaves_dependents_in_limbo(kernel):
+    a = kernel.enqueue("a", max_attempts=1)["id"]
+    b = kernel.enqueue("b", max_attempts=1)["id"]
+    c = kernel.enqueue("c", depends_on=[a, b])["id"]
+    for tid in (a, b):
+        assert kernel.claim("w")["id"] == tid
+        kernel.complete(tid, "w", AgentResult.failed("boom"))
+    assert kernel.retry(a)["revived"] == []
+    assert kernel.get(c)["status"] == "dead"
+    with sqlite3.connect(kernel.path) as conn:
+        conn.execute("UPDATE tasks SET status='pending', error_code='' WHERE id=?", (c,))
+    assert c in kernel.rescue()["dead"]
+    assert kernel.get(c)["error_code"] == "upstream_failed"
+    kernel.retry(b)
+    assert kernel.get(c)["status"] == "pending"
+
+
 def test_enqueue_after_a_failed_upstream_is_dead_on_arrival(kernel):
     up = kernel.enqueue("up", max_attempts=1)["id"]
     kernel.claim("w")

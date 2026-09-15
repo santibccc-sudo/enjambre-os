@@ -462,7 +462,9 @@ class Kernel:
                 upstream = frontier.pop()
                 for dep in c.execute(
                     "SELECT t.id FROM task_deps d JOIN tasks t ON t.id=d.task_id "
-                    "WHERE d.depends_on=? AND t.status='dead' AND t.error_code='upstream_failed'", (upstream,)
+                    "WHERE d.depends_on=? AND t.status='dead' AND t.error_code='upstream_failed' "
+                    "AND NOT EXISTS (SELECT 1 FROM task_deps d2 JOIN tasks up ON up.id=d2.depends_on "
+                    "  WHERE d2.task_id=t.id AND up.status IN ('failed', 'dead', 'cancelled'))", (upstream,)
                 ).fetchall():
                     self._requeue(c, dep["id"], actor, f"upstream {task_id} was retried", now)
                     revived.append(dep["id"])
@@ -514,6 +516,19 @@ class Kernel:
                 self._kill(c, r["id"], "attempts_exhausted", f"pending with all {r['max_attempts']} attempts used", now)
                 dead.append(r["id"])
                 dead += self._cascade(c, r["id"], now)
+            # A pending task waiting on something that will never be done can never run.
+            seen = set(dead)
+            for r in c.execute(
+                "SELECT t.id, up.id AS upstream FROM tasks t JOIN task_deps d ON d.task_id=t.id "
+                "JOIN tasks up ON up.id=d.depends_on "
+                "WHERE t.status='pending' AND up.status IN ('failed', 'dead', 'cancelled')"
+            ).fetchall():
+                if r["id"] in seen:
+                    continue
+                self._kill(c, r["id"], "upstream_failed", f"upstream task {r['upstream']} ended without success", now)
+                killed = [r["id"], *self._cascade(c, r["id"], now)]
+                seen.update(killed)
+                dead += killed
         return {"retried": retried, "dead": dead}
 
     def recover(self, worker_prefix: str, *, exclude: Iterable[str] = ()) -> list[str]:
