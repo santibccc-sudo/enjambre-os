@@ -86,7 +86,8 @@ agents:
   reviewer:
     adapter: cli
     options:
-      command: ["codex", "exec", "-"]
+      command: ["codex", "exec", "{prompt}"]
+      stdin: false               # the prompt goes in as an argument (never through a shell)
       env: [OPENAI_API_KEY]
 
   local:

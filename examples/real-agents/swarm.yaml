@@ -1,0 +1,68 @@
+# A swarm of real agents. Copy this folder, keep the agents you have, delete the rest.
+#   enjambre up examples/real-agents
+# Keys come from environment variables; nothing secret lives in this file.
+name: real-agents
+
+kernel:
+  db: .enjambre/swarm.db
+  proof_mode: enforce        # agents must prove their deliverables exist
+  resources: [gpu0]
+
+scheduler:
+  poll_seconds: 2
+  max_parallel: 2
+  lease_minutes: 45          # renewed automatically while an agent works
+
+router:
+  weights: {success: 40, latency: 10, cost: 25, energy: 25}
+  solar_window: {start: "09:30", end: "17:30", timezone: Europe/Madrid}
+
+memory:
+  dir: memory
+
+agents:
+  coder:
+    name: Claude Code
+    adapter: cli
+    host: workstation
+    energy: solar
+    options:
+      command: ["claude", "-p", "{prompt}"]
+      stdin: false
+      cwd: workspace
+      timeout_s: 2400
+      env: [ANTHROPIC_API_KEY]
+
+  reviewer:
+    name: Codex
+    adapter: cli
+    host: workstation
+    energy: solar
+    cost: 0.3
+    options:
+      command: ["codex", "exec", "{prompt}"]
+      stdin: false
+      cwd: workspace
+      timeout_s: 2400
+      env: [OPENAI_API_KEY]
+
+  local:
+    name: Local model
+    adapter: openai
+    host: workstation
+    energy: solar
+    options:
+      base_url: http://localhost:11434/v1
+      model: qwen3:8b
+      timeout_s: 600
+
+  researcher:
+    name: Hosted model
+    adapter: openai
+    host: cloud
+    energy: always-on
+    cost: 0.5
+    options:
+      base_url: https://openrouter.ai/api/v1
+      model: deepseek/deepseek-chat
+      api_key_env: OPENROUTER_API_KEY
