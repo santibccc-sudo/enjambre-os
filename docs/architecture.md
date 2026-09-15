@@ -108,6 +108,10 @@ while there are free slots. For each task:
 On start, tasks left running by a previous instance are recovered, never the ones the current
 instance is still running.
 
+Recovery is keyed on the worker id (`scheduler` by default). Run one scheduler per worker id: two
+live schedulers sharing an id and a database would recover each other's running tasks when
+either restarts. Several schedulers on one swarm are fine as long as each has its own id.
+
 ## Router
 
 ```text

@@ -9,7 +9,7 @@ permission gate, a router and a shared memory you can see.
 
 [Español](README.es.md)
 
-![The swarm dashboard: tasks flowing through queued, running, done and stopped, with agents, leases and a live trace](docs/images/dashboard.png)
+![enjambre demo: agents claim, retry and finish tasks, the policy gate blocks an unauthorised publish, then the memory graph is searched](docs/images/demo.gif)
 
 ```bash
 pip install .            # from a clone; one dependency (PyYAML)
@@ -52,6 +52,8 @@ failures happened.
 | **MCP server** | Any MCP client can heartbeat, lease, claim, renew and complete tasks, check permissions and query memory. |
 | **Memory graph** | A folder of markdown notes becomes a 3D graph you can explore, search and teach with. Links to notes nobody wrote yet show up in red. |
 | **Dashboard** | Live board, agents, leases, trace and task timelines. No build step, no framework, strict Content Security Policy. |
+
+![The swarm dashboard: tasks flowing through queued, running, done and stopped, with agents, leases and a live trace](docs/images/dashboard.png)
 
 ![The memory graph: markdown notes as a 3D constellation, with a focused note and its neighbours](docs/images/memory.png)
 

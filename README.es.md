@@ -9,7 +9,7 @@ permisos, un router y una memoria compartida que se puede ver.
 
 [English](README.md)
 
-![Dashboard del enjambre](docs/images/dashboard.png)
+![Demo de enjambre: los agentes cogen, reintentan y terminan tareas, el filtro bloquea una publicación no autorizada y se busca en la memoria](docs/images/demo.gif)
 
 ```bash
 pip install .            # desde un clon; una sola dependencia (PyYAML)
