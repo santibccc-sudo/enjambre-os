@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+
+# Runtime state never belongs in git.
+*.db
+*.db-wal
+*.db-shm
+.enjambre/
+.env
+.env.*
+!.env.example

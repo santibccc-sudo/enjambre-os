@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "enjambre"
+version = "0.1.0"
+description = "A small, honest operating system for swarms of AI agents: durable kernel, policy gate, router, MCP server and a 3D memory graph."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "GreenAI Network" }]
+dependencies = ["PyYAML>=6"]
+keywords = ["agents", "multi-agent", "orchestration", "mcp", "llm", "harness", "swarm", "scheduler"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: System :: Distributed Computing",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+enjambre = "enjambre.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+enjambre = ["web/*", "web/vendor/*", "templates/**/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

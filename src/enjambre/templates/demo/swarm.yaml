@@ -1,0 +1,52 @@
+# A demo swarm that runs anywhere: scripted agents, no model, no API key.
+# Swap `adapter: scripted` for `cli` (Claude Code, Codex, aider...) or `openai`
+# (OpenAI, OpenRouter, Ollama, vLLM...) and the rest of the swarm stays the same.
+name: demo-swarm
+
+kernel:
+  db: .enjambre/swarm.db
+  proof_mode: record          # record | enforce
+  resources: [gpu0, gpu1]
+
+scheduler:
+  poll_seconds: 1
+  max_parallel: 2
+  lease_minutes: 30
+
+router:
+  weights: {success: 35, latency: 15, cost: 20, energy: 30}
+  solar_window: {start: "09:30", end: "17:30", timezone: UTC}
+
+memory:
+  dir: memory
+
+agents:
+  scout:
+    name: Scout
+    adapter: scripted
+    host: solar-node
+    energy: solar
+    options: {delay_s: 2}
+
+  writer:
+    name: Writer
+    adapter: scripted
+    host: cloud-vps
+    energy: always-on
+    options: {delay_s: 3}
+
+  critic:
+    name: Critic
+    adapter: scripted
+    host: cloud-vps
+    energy: grid
+    options: {delay_s: 2, fail_first: 1}   # stumbles once, so you can watch a retry
+
+  editor:
+    name: Editor
+    adapter: scripted
+    host: laptop
+    energy: grid
+    cost: 0.4
+    route: false                            # only runs tasks pinned to it
+    options: {delay_s: 2}

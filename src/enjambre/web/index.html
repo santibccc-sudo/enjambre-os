@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>enjambre</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img class="mark" src="favicon.svg" alt="" width="30" height="30">
+      <div class="brand-text">
+        <b id="swarm-name">enjambre</b>
+        <small id="version">connecting...</small>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Views">
+      <button role="tab" data-tab="swarm" aria-selected="true">Swarm</button>
+      <button role="tab" data-tab="memory" aria-selected="false">Memory</button>
+    </nav>
+    <div class="status">
+      <span id="sky" class="pill" hidden></span>
+      <span id="live" class="live" title="Connection to the kernel"><i></i><span>live</span></span>
+    </div>
+  </header>
+
+  <main>
+    <section id="tab-swarm" class="tab" aria-label="Swarm">
+      <div id="kpis" class="kpis" aria-live="polite"></div>
+      <div class="grid">
+        <section class="card board">
+          <div class="card-head">
+            <h2>Work</h2>
+            <form id="enqueue" class="enqueue" autocomplete="off">
+              <input name="title" placeholder="Queue a task..." aria-label="Task title" maxlength="300" required>
+              <select name="agent" aria-label="Agent"><option value="">router picks</option></select>
+              <select name="priority" aria-label="Priority">
+                <option value="2">P2</option><option value="5" selected>P5</option><option value="8">P8</option>
+              </select>
+              <button type="submit">Queue</button>
+            </form>
+          </div>
+          <div id="columns" class="columns"></div>
+        </section>
+        <aside class="side">
+          <section class="card">
+            <div class="card-head"><h2>Agents</h2><span id="router-pick" class="muted small"></span></div>
+            <div id="agents" class="agents"></div>
+          </section>
+          <section class="card">
+            <div class="card-head"><h2>Leases</h2></div>
+            <div id="leases" class="leases"></div>
+          </section>
+          <section class="card">
+            <div class="card-head"><h2>Trace</h2><span class="muted small">every transition, as it happens</span></div>
+            <ol id="trace" class="trace"></ol>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section id="tab-memory" class="tab memory" aria-label="Memory" hidden>
+      <div id="graph" class="graph"></div>
+      <div class="graph-ui">
+        <div class="graph-title">
+          <small>MEMORY GRAPH</small>
+          <h1>Every node is a note. <em>Every line is a link.</em></h1>
+        </div>
+        <input id="memory-search" type="search" placeholder="Search memory..." aria-label="Search memory">
+        <ol id="memory-results" class="results"></ol>
+        <div id="memory-legend" class="legend"></div>
+        <div id="memory-stats" class="muted small"></div>
+      </div>
+      <aside id="memory-inspector" class="inspector" hidden></aside>
+      <div id="memory-empty" class="empty-state" hidden></div>
+    </section>
+  </main>
+
+  <aside id="drawer" class="drawer" hidden aria-label="Task detail"></aside>
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <dialog id="token-dialog">
+    <form method="dialog">
+      <h3>This swarm is protected</h3>
+      <p class="muted">Paste the value of <code>ENJAMBRE_TOKEN</code>. It stays in this browser tab.</p>
+      <input id="token-input" type="password" autocomplete="off" aria-label="Token">
+      <menu><button value="ok">Connect</button></menu>
+    </form>
+  </dialog>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
