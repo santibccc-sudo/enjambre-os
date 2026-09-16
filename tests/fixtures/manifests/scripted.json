@@ -1,0 +1,11 @@
+{
+  "id": "scout",
+  "adapter": "scripted",
+  "name": "Scout",
+  "energy": "solar",
+  "cost": 0.5,
+  "options": {
+    "delay_s": 0,
+    "fail_first": 0
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/santibccc-sudo/enjambre-os/schemas/agent-manifest.schema.json",
+  "title": "Enjambre agent manifest",
+  "description": "One agent entry as declared under `agents:` in a swarm.yaml genome (see src/enjambre/genome.py:AgentSpec). Fields and defaults mirror what Genome.load() accepts; 'id' is the swarm.yaml map key promoted to a field so a manifest is a standalone, shareable document.",
+  "type": "object",
+  "required": ["id", "adapter"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Agent id: the swarm.yaml key. Lowercase letters, digits, '-' and '_', 1-32 chars.",
+      "pattern": "^[a-z0-9][a-z0-9_-]{0,31}$"
+    },
+    "adapter": {
+      "type": "string",
+      "description": "Which adapter turns a prompt into an AgentResult.",
+      "enum": ["scripted", "cli", "openai"]
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name. Defaults to 'id' when absent.",
+      "minLength": 1
+    },
+    "host": {
+      "type": "string",
+      "description": "Free-form label for where this agent runs (e.g. 'workstation', 'cloud')."
+    },
+    "energy": {
+      "type": "string",
+      "description": "Energy source, scored by the router and used for the solar window.",
+      "enum": ["solar", "grid", "always-on"],
+      "default": "always-on"
+    },
+    "cost": {
+      "type": "number",
+      "description": "Relative cost per task, scored by the router (0 = free).",
+      "minimum": 0,
+      "default": 0
+    },
+    "route": {
+      "type": "boolean",
+      "description": "Whether the router may pick this agent for unpinned tasks.",
+      "default": true
+    },
+    "options": {
+      "type": "object",
+      "description": "Adapter-specific settings; shape depends on 'adapter'.",
+      "not": {
+        "required": ["api_key"]
+      },
+      "properties": {
+        "api_key": false
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "adapter": { "const": "cli" } },
+        "required": ["adapter"]
+      },
+      "then": {
+        "properties": {
+          "options": {
+            "type": "object",
+            "required": ["command"],
+            "properties": {
+              "command": {
+                "type": "array",
+                "description": "Argv of the process to launch. Never run through a shell.",
+                "items": { "type": "string" },
+                "minItems": 1
+              },
+              "stdin": {
+                "type": "boolean",
+                "description": "If true (default), the prompt is written to stdin; otherwise '{prompt}' in 'command' is substituted.",
+                "default": true
+              },
+              "contract": {
+                "type": "string",
+                "description": "'json': parse the output contract from stdout. 'text': exit code decides completed/failed.",
+                "enum": ["json", "text"],
+                "default": "json"
+              },
+              "timeout_s": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "default": 1800
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory, resolved relative to the swarm root."
+              },
+              "env": {
+                "type": "array",
+                "description": "Names (never values) of environment variables passed through to the child process.",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "adapter": { "const": "openai" } },
+        "required": ["adapter"]
+      },
+      "then": {
+        "properties": {
+          "options": {
+            "type": "object",
+            "required": ["model"],
+            "properties": {
+              "base_url": {
+                "type": "string",
+                "description": "Any OpenAI-compatible chat endpoint.",
+                "format": "uri",
+                "default": "https://api.openai.com/v1"
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1
+              },
+              "api_key_env": {
+                "type": "string",
+                "description": "Name of the environment variable holding the API key, never the key itself.",
+                "default": "OPENAI_API_KEY"
+              },
+              "timeout_s": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "default": 300
+              },
+              "temperature": {
+                "type": "number",
+                "minimum": 0
+              },
+              "max_tokens": {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "adapter": { "const": "scripted" } },
+        "required": ["adapter"]
+      },
+      "then": {
+        "properties": {
+          "options": {
+            "type": "object",
+            "properties": {
+              "delay_s": {
+                "type": "number",
+                "description": "Simulated think time before the agent replies.",
+                "minimum": 0,
+                "default": 1.0
+              },
+              "fail_first": {
+                "type": "integer",
+                "description": "Fail the first N attempts of each task (for testing retries).",
+                "minimum": 0,
+                "default": 0
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

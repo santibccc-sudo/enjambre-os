@@ -1,0 +1,12 @@
+{
+  "id": "local",
+  "adapter": "openai",
+  "name": "Local model",
+  "host": "workstation",
+  "energy": "solar",
+  "options": {
+    "base_url": "http://localhost:11434/v1",
+    "model": "qwen3:8b",
+    "timeout_s": 600
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "coder",
+  "adapter": "cli",
+  "name": "Claude Code",
+  "host": "workstation",
+  "energy": "solar",
+  "options": {
+    "command": ["claude", "-p", "{prompt}"],
+    "stdin": false,
+    "cwd": "workspace",
+    "timeout_s": 2400,
+    "env": ["ANTHROPIC_API_KEY"]
+  }
+}
