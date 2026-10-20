@@ -9,10 +9,14 @@ permission gate, a router and a shared memory you can see.
 
 [Español](README.es.md)
 
+> Built by a car workshop manager whose AI agents kept saying "done" when nothing was done.
+> In a workshop you don't fix that by trusting the mechanic more: you fix it with a work order
+> and a check before the car leaves. enjambre is that, for agents.
+
 ![enjambre demo: agents claim, retry and finish tasks, the policy gate blocks an unauthorised publish, then the memory graph is searched](docs/images/demo.gif)
 
 ```bash
-pip install .            # from a clone; one dependency (PyYAML)
+pip install enjambre     # from PyPI; one dependency (PyYAML)
 enjambre demo            # open http://127.0.0.1:8765
 ```
 

@@ -9,10 +9,14 @@ permisos, un router y una memoria compartida que se puede ver.
 
 [English](README.md)
 
+> Lo ha hecho un jefe de taller cuyos agentes de IA decían «hecho» sin haber hecho nada.
+> En un taller eso no se arregla fiándose más del mecánico, sino con una orden de reparación
+> y una comprobación antes de entregar el coche. enjambre es eso, para agentes.
+
 ![Demo de enjambre: los agentes cogen, reintentan y terminan tareas, el filtro bloquea una publicación no autorizada y se busca en la memoria](docs/images/demo.gif)
 
 ```bash
-pip install .            # desde un clon; una sola dependencia (PyYAML)
+pip install enjambre     # desde PyPI; una sola dependencia (PyYAML)
 enjambre demo            # abre http://127.0.0.1:8765
 ```
 
