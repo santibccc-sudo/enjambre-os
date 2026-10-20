@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 
 import pytest
 
@@ -45,6 +46,25 @@ def test_everyday_commands(swarm, capsys):
     assert main(["ps", "--dir", str(swarm)]) == 0
     assert main(["memory", "lease", "--dir", str(swarm)]) == 0
     assert "leases" in capsys.readouterr().out
+
+
+def test_validate_reports_schema_errors(tmp_path, capsys):
+    fixtures = Path(__file__).parent / "fixtures" / "manifests"
+    ok = main(["validate", str(fixtures / "scripted.json")])
+    assert ok == 0
+    assert "scripted.json: OK" in capsys.readouterr().out
+
+    bad = main(["validate", str(fixtures / "invalid-secret-in-options.json")])
+    assert bad == 1
+    out = capsys.readouterr().out
+    assert "invalid-secret-in-options.json: INVALID" in out
+    assert "api_key" in out
+
+    both = main(["validate", str(fixtures / "scripted.json"), str(fixtures / "invalid-secret-in-options.json")])
+    assert both == 1
+
+    missing = main(["validate", str(tmp_path / "nope.json")])
+    assert missing == 1
 
 
 def test_help_version_and_errors(tmp_path, capsys):

@@ -1,4 +1,5 @@
-"""schemas/agent-manifest.schema.json against tests/fixtures/manifests/*.json.
+"""enjambre.manifest (the schemas/agent-manifest.schema.json validator) against
+tests/fixtures/manifests/*.json.
 
 Valid fixtures are also loaded through Genome.load() as a real swarm.yaml agent,
 so the schema cannot drift from what genome.py actually accepts.
@@ -8,30 +9,33 @@ from pathlib import Path
 
 import pytest
 import yaml
-from jsonschema import Draft202012Validator, ValidationError
+from jsonschema import Draft202012Validator
 
 from enjambre.genome import Genome
+from enjambre.manifest import ManifestError, errors, load_schema, validate
 
-ROOT = Path(__file__).parent.parent
-SCHEMA = json.loads((ROOT / "schemas" / "agent-manifest.schema.json").read_text())
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "manifests"
 VALID_FIXTURES = sorted(p for p in FIXTURES_DIR.glob("*.json") if not p.stem.startswith("invalid-"))
 INVALID_FIXTURES = sorted(FIXTURES_DIR.glob("invalid-*.json"))
 
 
 def test_schema_itself_is_valid():
-    Draft202012Validator.check_schema(SCHEMA)
+    Draft202012Validator.check_schema(load_schema())
 
 
 @pytest.mark.parametrize("path", VALID_FIXTURES, ids=lambda p: p.stem)
 def test_valid_fixtures_pass_the_schema(path):
-    Draft202012Validator(SCHEMA).validate(json.loads(path.read_text()))
+    manifest = json.loads(path.read_text())
+    assert errors(manifest) == []
+    validate(manifest)  # does not raise
 
 
 @pytest.mark.parametrize("path", INVALID_FIXTURES, ids=lambda p: p.stem)
 def test_invalid_fixtures_fail_the_schema(path):
-    with pytest.raises(ValidationError):
-        Draft202012Validator(SCHEMA).validate(json.loads(path.read_text()))
+    manifest = json.loads(path.read_text())
+    assert errors(manifest) != []
+    with pytest.raises(ManifestError):
+        validate(manifest)
 
 
 @pytest.mark.parametrize("path", VALID_FIXTURES, ids=lambda p: p.stem)

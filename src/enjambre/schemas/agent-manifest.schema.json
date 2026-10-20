@@ -61,6 +61,7 @@
         "required": ["adapter"]
       },
       "then": {
+        "required": ["options"],
         "properties": {
           "options": {
             "type": "object",
@@ -111,6 +112,7 @@
         "required": ["adapter"]
       },
       "then": {
+        "required": ["options"],
         "properties": {
           "options": {
             "type": "object",

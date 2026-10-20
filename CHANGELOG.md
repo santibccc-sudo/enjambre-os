@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **`enjambre validate`**: checks one or more agent manifest JSON files against the bundled
+  JSON Schema (`pip install 'enjambre[validate]'`). The schema now ships inside the package.
+  Scope and what is deliberately left out: [docs/agent-manifest.md](docs/agent-manifest.md).
+
 ## 0.1.0 — unreleased
 
 First version.

@@ -9,10 +9,12 @@
     enjambre ps --dir my-swarm
     enjambre memory "leases" --dir my-swarm
     enjambre mcp --dir my-swarm   MCP server over stdio
+    enjambre validate agent.json  check a manifest against the JSON Schema
 """
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import os
 import shutil
@@ -27,6 +29,7 @@ from pathlib import Path
 from . import __version__
 from .genome import Genome, GenomeError
 from .kernel import Kernel
+from .manifest import ManifestError, validate_file
 from .memory import MemoryGraph
 from .router import Router
 from .scheduler import Scheduler
@@ -224,6 +227,28 @@ def cmd_memory(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_validate(args: argparse.Namespace) -> int:
+    ok = True
+    for path in args.manifest:
+        try:
+            problems = validate_file(path)
+        except ManifestError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        except (OSError, json.JSONDecodeError) as exc:
+            print(f"{path}: {exc}")
+            ok = False
+            continue
+        if problems:
+            ok = False
+            print(f"{path}: INVALID")
+            for problem in problems:
+                print(f"  {problem}")
+        else:
+            print(f"{path}: OK")
+    return 0 if ok else 1
+
+
 def cmd_mcp(args: argparse.Namespace) -> int:
     from .mcp import HttpTransport, LocalTransport, McpServer
 
@@ -298,6 +323,10 @@ def parser() -> argparse.ArgumentParser:
     sp.add_argument("--dir", default=".")
     sp.add_argument("--limit", type=int, default=8)
     sp.set_defaults(fn=cmd_memory)
+
+    sp = sub.add_parser("validate", help="validate agent manifest JSON files against the agent-manifest JSON Schema")
+    sp.add_argument("manifest", nargs="+", help="path to one or more manifest JSON files")
+    sp.set_defaults(fn=cmd_validate)
 
     sp = sub.add_parser("mcp", help="MCP server over stdio")
     group = sp.add_mutually_exclusive_group()
